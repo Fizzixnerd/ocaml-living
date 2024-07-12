@@ -1,0 +1,4 @@
+(executable
+ (public_name living)
+ (name main)
+ (libraries living))

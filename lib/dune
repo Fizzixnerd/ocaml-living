@@ -1,0 +1,6 @@
+(library
+ (modules Living Living_ctypes)
+ (name living)
+ (public_name living)
+ (libraries ctypes)
+ (flags (:standard)))
