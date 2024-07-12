@@ -1,5 +1,5 @@
 (library
- (modules Living Living_ctypes)
+ (modules Living_core Living_ctypes)
  (name living)
  (public_name living)
  (libraries ctypes)
