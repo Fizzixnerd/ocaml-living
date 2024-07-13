@@ -15,7 +15,7 @@ let strchr : char ptr -> char -> char ptr =
   Foreign.foreign "strchr" (ptr char @-> char @-> returning (ptr char))
 
 let () =
-  let p = CArray.start (CArray.of_string "abc") in
+  let p = CArray.of_string "abc" |> CArray.start in
   let q = strchr p 'a' in
   let () = Gc.compact () in
   let c = !@ q in
@@ -34,7 +34,7 @@ open Living_ctypes
 
 let strchr  : char ptr -> char -> char ptr Living_core.t = 
   let strchr_unsafe = Foreign.foreign "strchr" (ptr char @-> char @-> returning (ptr char)) in
-  fun s c -> Living_core(strchr_unsafe s c => s)
+  fun s c -> Living_core.(strchr_unsafe s c => s)
 ```
 
 Here, we have used `(=>)` operator to encode the information that `strchr_unsafe s c` being alive _implies_ that `s` must be alive too, in order for the program to be correct.  Next, we replace any operations that can create dependant values in `Ctypes` with their `Living` counterparts, and replace the `let`s that bind them with `let*`s instead.  We also need to return a value of type `'a Living.t`, so we just return a `unit` wrapped in this type.
@@ -42,7 +42,7 @@ Here, we have used `(=>)` operator to encode the information that `strchr_unsafe
 ```ocaml
 let _ =
   let open Living_core.Let_syntax in
-  let* p = CArray.start (CArray.of_string "abc") in
+  let* p = CArray.of_string "abc" |> Living_core.bind CArray.start in
   let* q = strchr p 'a' in
   let () = Gc.compact () in
   let* c = !@ q in
