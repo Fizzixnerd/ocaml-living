@@ -79,11 +79,11 @@ It is important to do step 3. properly.  Here are two examples; the first you sh
 (*** NEVER DO THIS ***)
 let _ =
   let my_dependencyless_char =
-      CArray.of_string "abc"
-      |> Living_core.bind CArray.start
-      |> Living_core.bind (fun q -> strchr p 'a') in
-      (* Bad assumption: We don't care about q after we derefence it, since the char is copied to OCaml, so we use the non-wrapped version of !@ from base Ctypes on just the value. *)
-      |> fun my_dependencyful_char_ptr -> Ctypes.(!@) my_dependencyful_char_ptr.unsafe_value
+    CArray.of_string "abc"
+    |> Living_core.bind CArray.start
+    |> Living_core.bind (fun q -> strchr p 'a') in
+    (* Bad assumption: We don't care about q after we derefence it, since the char is copied to OCaml, so we use the non-wrapped version of !@ from base Ctypes on just the value. *)
+    |> fun my_dependencyful_char_ptr -> Ctypes.(!@) my_dependencyful_char_ptr.unsafe_value
   in
   Printf.printf "%c\n" my_dependencyless_char
 ```
