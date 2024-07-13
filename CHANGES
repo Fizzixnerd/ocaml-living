@@ -1,0 +1,7 @@
+# 0.2.0
+
+* Make setter functions create dependencies with the values they set. (#1)
+    (Matt Walker)
+
+- Add tests for new setter functions. (#1)
+    (Matt Walker)
