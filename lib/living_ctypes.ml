@@ -17,6 +17,14 @@ let (+@) p n = Living_core.(p +@ n => p)
     The dependencies include the original pointer. *)
 let (-@) p n = Living_core.(p -@ n => p)
 
+(** [allocate t v] allocates a fresh value of type [t], initialises it
+    with [v] and returns its address, wrapped in a [Living_core.t].  
+    The dependencies include the argument [v]. The argument [?finalise],
+    if present, will be called just before the memory is freed. The value
+    will be automatically freed after no references to the pointer remain
+    within the calling OCaml program. *)
+let allocate ?finalise typ x = Living_core.(allocate ?finalise typ x => x)
+
 (** [getf s f] retrieves the value of the field [f] in the structure or
     union [s], wrapped in a [Living_core.t].  The dependencies include the 
     original structure.  The semantics for non-scalar types are
