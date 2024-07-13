@@ -6,11 +6,11 @@ module Living_ctypes_tests = struct
   let strchr = Ctypes.(Foreign.foreign "strchr" (ptr char @-> char @-> returning (ptr char)))
 
   let test_deadness_simple =
+    let open Ctypes in
     "Test should usually fail because of UB" >::
       (fun _ ->
         let correct = ref 0 in
         for _i = 0 to 999 do
-          let open Ctypes in
           let p = CArray.start (CArray.of_string "abc") in
           let q = strchr p 'a' in
           let () = Gc.compact () in
@@ -21,13 +21,13 @@ module Living_ctypes_tests = struct
         )
 
   let test_liveness_simple =
+    let open Living_core.Let_syntax in
+    let open Living_ctypes in
     "Test should pass with Living" >::
       (fun _ -> 
         let correct = ref 0 in
         for _i = 0 to 999 do
           let _ = 
-            let open Living_core.Let_syntax in
-            let open Living_ctypes in
             let* p = CArray.start (CArray.of_string "abc") in
             let q =  strchr p 'a' in
             let () = Gc.compact () in

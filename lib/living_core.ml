@@ -33,8 +33,21 @@ let (=>) x y = { unsafe_value = x; dependencies = [Dep x; Dep y]}
 (** See [bind]. *)
 let (>>=) x f = bind f x
 
+(** [keep_alive x] provides a weaker gaurantee than ['a t] in that [x] (and not 
+    things [x] depends on, if [x] is not of type ['a t]) is kept alive only up
+    the point where this function is called. *)
+let keep_alive x = ignore (Sys.opaque_identity x)
+
 module Let_syntax = struct
   let (let*) x f = x |> bind f
 
   let (let+) x f = x |> map f
+
+  (** This is a simple binding operator for keeping the bound variable alive for
+      the whole time it is in scope.*)
+  let (let$) x f =
+    let ret = f x in
+    keep_alive x;
+    ret
+
 end
