@@ -67,7 +67,7 @@ If you have measured performance and found you need to drop dependencies, you ca
 
 The process looks like this:
 
-1. Take your `'a Living_core.t` and figure out if it has any pointers structures that have been allocated by `malloc`, `Ctypes.allocate`, `Ctypes.allocate_n` or the like.
+1. Take your `'a Living_core.t` and figure out if it has any pointers or structures that have been allocated by `malloc`, `Ctypes.allocate`, `Ctypes.allocate_n` or the like.
 2. If it does not, proceed to step 4.
 3. If it does, then copy all that data into OCaml heap objects that can't be GC'd from underneath you like an off-heap pointer can be, by using `Living_core.map` or `Living_core.bind` to map the `'a` to a new, safer `'b`
 4. Access `unsafe_value`.
