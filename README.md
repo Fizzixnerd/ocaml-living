@@ -22,7 +22,7 @@ let () =
   if Char.(equal c 'a') then print_endline "yay!" else print_endline "boo!"
 ```
 
-This code will almost always print "boo!" (run `dune test` if you don't believe me!).  The issue is that `p` and `q` do not appear after the `Gc.compact ()`, and since the garbage collector has no knowledge of the implicit dependency between `p`, `q`, and `c`, in that `q` points into `p`, and so its dereference `c` is only valid as long as `p` continues to live.
+This code will almost always print "boo!" (run `dune test` if you don't believe me!).  The issue is that `p` does not appear after the `Gc.compact ()`, and since the garbage collector has no knowledge of the implicit dependency between `p`, `q`, and `c`, in that `q` points into `p` (and so its dereference `c` is only valid as long as `p` continues to live) it collects `p` during compaction.
 
 The idea of this library is to provide a way of encoding this dependency semi-automatically.
 
