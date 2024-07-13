@@ -61,10 +61,10 @@ module Living_ctypes_tests = struct
       done;
       if !correct = 1000 then assert_failure "x' didn't die!")
 
-  let test_aliveness_set =
+  let test_liveness_set =
     let open Living_core.Let_syntax in
     let open Living_ctypes in
-    "Test should usually fail because of UB" >::
+    "Test pass with Living" >::
     (fun _ ->
       let correct = ref 0 in
       for _i = 0 to 999 do
@@ -84,7 +84,7 @@ module Living_ctypes_tests = struct
   let suite = "Living_ctypes tests" >:::
   [ test_liveness_simple;
     test_deadness_simple;
-    test_aliveness_set;
+    test_liveness_set;
     test_deadness_set ]
 
 end
