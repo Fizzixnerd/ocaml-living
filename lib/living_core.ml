@@ -1,7 +1,7 @@
 (** A [dep] is a dependency of a value of type ['a t].*)
 type dep = Dep : 'a -> dep
 
-(** A ['a t] is an [unsafe_value: 'a] along with its
+(** An ['a t] is an [unsafe_value: 'a] along with its
     [dependencies: dep list].  In particular, the dependencies
     cannot be garbage collected while this structure lives.  This
     makes it suitable for encoding dependencies between, say, FFI
@@ -13,7 +13,7 @@ type 'a t = { unsafe_value: 'a; dependencies : dep list}
 let bind : ('a -> 'b t) -> 'a t -> 'b t =
   fun f x ->
     let y = f x.unsafe_value in
-    { y with dependencies = x.dependencies @ y.dependencies}
+    { y with dependencies = Dep y :: x.dependencies @ y.dependencies}
 
 (** Inject an ['a] into an ['a t], whose only dependency is itself.*)
 let return : 'a -> 'a t =
@@ -29,6 +29,9 @@ let map : ('a -> 'b) -> 'a t -> 'b t =
 (** [x => y] ensures that [y] lives at least as long as [x] does, by wrapping
     [x] in a ['a t] and adding both [x] and [y] as dependencies.*)
 let (=>) x y = { unsafe_value = x; dependencies = [Dep x; Dep y]}
+
+(** See [bind]. *)
+let (>>=) x f = bind f x
 
 module Let_syntax = struct
   let (let*) x f = x |> bind f

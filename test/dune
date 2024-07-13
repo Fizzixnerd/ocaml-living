@@ -1,2 +1,3 @@
 (test
+ (libraries ctypes ounit2 ctypes-foreign living)
  (name test_living))

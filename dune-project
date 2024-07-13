@@ -21,5 +21,5 @@
  (description "An interface to Ctypes' ffi that lives harmoniously with the OCaml garbage collector.")
  (depends ocaml dune ctypes)
  (tags
-  (ffi ctypes)))
+  (ffi ctypes ounit2)))
 

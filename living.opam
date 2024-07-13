@@ -7,7 +7,7 @@ description:
 maintainer: ["Matt Walker"]
 authors: ["Matt Walker"]
 license: "LICENSE"
-tags: ["ffi" "ctypes"]
+tags: ["ffi" "ctypes" "ounit2"]
 homepage: "https://github.com/Fizzixnerd/ocaml-living"
 bug-reports: "https://github.com/Fizzixnerd/ocaml-living/issues"
 depends: [
