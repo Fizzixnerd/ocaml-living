@@ -95,7 +95,7 @@ The problem is that, at least theoretically, `Ctypes.(!@)` could call the garbag
 (*** DO THIS ***)
 let _ =
   let my_dependencyless_char =
-    CArray.of_string "abc")
+    CArray.of_string "abc"
     |> Living_core.bind CArray.start
     |> Living_core.bind (fun p -> strchr p 'a')
     |> Living_core.map Ctypes.(!@) (* Key idea: map with !@ _inside_ the Living_core.t context! *)
