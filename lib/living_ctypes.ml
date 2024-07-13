@@ -23,6 +23,8 @@ let (-@) p n = Living_core.(p -@ n => p)
     non-copying, as for [(!@)]. *)
 let getf s f = Living_core.(getf s f => s)
 
+let setf s f x = Living_core.(setf s f x => x)
+
 (** [s @. f] computes the address of the field [f] in the structure or
     union value [s], wrapped in a [Living_core.t].  The dependencies include
     the original structure. *)
@@ -32,6 +34,8 @@ let (@.) s f = Living_core.(s @. f => s)
     union value pointed to by [p], wrapped in a [Living_core.t].  The
     dependencies include the original pointer. *)
 let (|->) p f = Living_core.(p |-> f => p)
+
+let (<-@) p x = Living_core.(p <-@ x => x)
 
 (** [addr s] returns the address of the structure or union [s], wrapped
     in a [Living_core.t]. The dependencies include the original structure. *)
@@ -51,6 +55,8 @@ module CArray = struct
       Raise [Invalid_argument "index out of bounds"] if [n] is outside of the
       range [0] to [(CArray.length a - 1)]. *)
   let get a n = Living_core.(get a n => a)
+
+  let set a n x = Living_core.(set a n x => x)
 
   (** [map t f a] is analogous to [Array.map f a]: it creates a new array with
       element type [t] whose elements are obtained by applying [f] to the
