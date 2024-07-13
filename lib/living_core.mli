@@ -37,15 +37,12 @@ val (>>=) : ('a -> 'b t) -> 'a t -> 'b t
 val keep_alive : 'a -> unit
 
 module Let_syntax = struct
-  let (let*) x f = x |> bind f
+  val (let*) : 'a 't -> ('a -> 'b 't) -> 'b t
 
-  let (let+) x f = x |> map f
+  val (let+) : 'a 't -> ('a -> 'b) -> 'b t
 
   (** This is a simple binding operator for keeping the bound variable alive for
       the whole time it is in scope.*)
-  let (let$) x f =
-    let ret = f x in
-    keep_alive x;
-    ret
+  val (let$) : 'a -> ('a -> 'b) -> 'b
 
 end
