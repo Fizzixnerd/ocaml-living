@@ -21,6 +21,8 @@ module Living_ctypes_tests = struct
         )
 
   let test_liveness_simple =
+    let strchr xs c = Living_core.(strchr xs c => xs) in
+
     let open Living_core.Let_syntax in
     let open Living_ctypes in
     "Test should pass with Living" >::
@@ -29,7 +31,7 @@ module Living_ctypes_tests = struct
         for _i = 0 to 999 do
           let _ = 
             let* p = CArray.start (CArray.of_string "abc") in
-            let q =  strchr p 'a' in
+            let* q =  strchr p 'a' in
             let () = Gc.compact () in
             let* c = !@ q in
             if Char.(equal c 'a') then correct := !correct + 1;

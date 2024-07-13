@@ -27,8 +27,12 @@ let map : ('a -> 'b) -> 'a t -> 'b t =
   fun f x -> { x with unsafe_value = f x.unsafe_value }
 
 (** [x => y] ensures that [y] lives at least as long as [x] does, by wrapping
-    [x] in a ['a t] and adding both [x] and [y] as dependencies.*)
+    [x] in a ['a t] and adding both [x] and [y] as dependencies. *)
 let (=>) x y = { unsafe_value = x; dependencies = [Dep x; Dep y]}
+
+(** [x ==> ys] ensures that the list of [ys] lives at least as long as [x] does, by
+    wrapping [x] in a ['a t] and adding [x] and the list of [ys] as dependencies. *)
+let (==>) x ys = {unsafe_value = x; dependencies = Dep x :: List.map (fun y -> Dep y) ys}
 
 (** See [bind]. *)
 let (>>=) x f = bind f x
