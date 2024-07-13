@@ -21,6 +21,7 @@ module Living_ctypes_tests = struct
         )
 
   let test_liveness_simple =
+    (* Define a "safe" strchr *)
     let strchr xs c = Living_core.(strchr xs c => xs) in
 
     let open Living_core.Let_syntax in
