@@ -23,6 +23,11 @@ let (-@) p n = Living_core.(p -@ n => p)
     non-copying, as for [(!@)]. *)
 let getf s f = Living_core.(getf s f => s)
 
+(** [setf s f v] overwrites the value of the field [f] in the structure or union
+    [s] with [v], and returns a [unit] wrapped in a [Living_core.t].  The dependencies
+    include [v]. *)
+let setf s f x = Living_core.(setf s f x => x)
+
 (** [s @. f] computes the address of the field [f] in the structure or
     union value [s], wrapped in a [Living_core.t].  The dependencies include
     the original structure. *)
@@ -33,8 +38,12 @@ let (@.) s f = Living_core.(s @. f => s)
     dependencies include the original pointer. *)
 let (|->) p f = Living_core.(p |-> f => p)
 
+(** [p <-@ v] writes the value [v] to the address [p], and returns a [unit]
+    wrapped in a [Living_core.t].  The dependencies include [v]. *)
+let (<-@) p x = Living_core.(p <-@ x => x)
+
 (** [addr s] returns the address of the structure or union [s], wrapped
-    in a [Living_core.t]. The dependencies include the original structure. *)
+    in a [Living_core.t].  The dependencies include the original structure. *)
 let addr s = Living_core.(addr s => s)
 
 (** Operations on C arrays. *)
@@ -51,6 +60,15 @@ module CArray = struct
       Raise [Invalid_argument "index out of bounds"] if [n] is outside of the
       range [0] to [(CArray.length a - 1)]. *)
   let get a n = Living_core.(get a n => a)
+
+  (** [set a n v] overwrites the [n]th element of the zero-indexed array [a] with [v].
+
+      If you rebind the [CArray] module to [Array] then you can also use the [a.(n) <- v]
+      syntax instead of [Array.set a n v].
+
+      Raise [Invalid_argument "index out of bounds"] if [n] is outside of the range [0]
+      to [(CArray.length a - 1)]. *)
+  let set a n x = Living_core.(set a n x => x)
 
   (** [map t f a] is analogous to [Array.map f a]: it creates a new array with
       element type [t] whose elements are obtained by applying [f] to the
