@@ -26,20 +26,22 @@ let construct ?name x deps =
     ret;
   ret
 
+let unsafe_free x =
+  x.freed <- true;
+  x.unsafe_value
+
 let bind : ('a -> 'b t) -> 'a t -> 'b t =
   fun f x ->
-    let y = f x.unsafe_value in
-    { y with dependencies = Dep y :: x.dependencies @ y.dependencies}
+    let y = f (unsafe_free x) in
+    let z = { y with dependencies = Dep y :: x.dependencies @ y.dependencies} in
+    ignore (unsafe_free y);
+    z
 
 let return : 'a -> 'a t =
   fun x -> construct x [Dep x]
 
 let named_return : string -> 'a -> 'a t =
   fun name x -> construct ~name x [Dep x]
-
-let unsafe_free x =
-  x.freed <- true;
-  x.unsafe_value
 
 let map : ('a -> 'b) -> 'a t -> 'b t =
   fun f x -> { x with unsafe_value = f x.unsafe_value }

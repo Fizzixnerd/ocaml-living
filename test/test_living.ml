@@ -31,17 +31,17 @@ module Living_ctypes_tests = struct
     let open Living_core.Let_syntax in
     let open Living_ctypes in
     "Test should pass with Living" >::
-      (fun _ -> 
+      (fun _ ->
         let correct = ref 0 in
         for _i = 0 to 999 do
-          let _ = 
+          let x = 
             let* p = CArray.start (CArray.of_string "abc") in
             let* q =  strchr p 'a' in
             let () = Gc.compact () in
             let* c = !@ q in
             if Char.(equal c 'a') then correct := !correct + 1;
-            Living_core.return ()
-          in ()
+            Living_core.named_return "final value" ()
+          in Living_core.unsafe_free x
         done;
         assert_equal ~cmp:Int.equal ~msg:"At least one failure" !correct 1000)
         
@@ -68,16 +68,16 @@ module Living_ctypes_tests = struct
     (fun _ ->
       let correct = ref 0 in
       for _i = 0 to 999 do
-        let _ = 
+        let x = 
           let y = allocate_n ~count:1 s in
-          let x = allocate int 7 in
+          let* x = allocate int 7 in
           let* x' = y |-> x_f in
           let* () = x' <-@ x in
           let () = Gc.compact () in
           let* x'' = Living_core.bind (!@) (!@ x') in
           if x'' = 7 then correct := !correct + 1;
-          Living_core.return ()
-        in ()
+          Living_core.named_return "final value" ()
+        in Living_core.unsafe_free x
       done;
       assert_equal ~cmp:Int.equal ~msg:"At least one failure" !correct 1000) 
 
