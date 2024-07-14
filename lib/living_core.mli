@@ -18,7 +18,7 @@ val return : 'a -> 'a t
     its dependencies.  Note that since [bind], [return], and [(=>)] are 
     the only safe ways of constructing an ['a t], that these dependencies
     always include the never-mapped-over original [unsafe_value]. *)
-val map : ('a -> 'b) -> 'a t -> 'b t =
+val map : ('a -> 'b) -> 'a t -> 'b t
 
 (** [x => y] ensures that [y] lives at least as long as [x] does, by wrapping
     [x] in a ['a t] and adding both [x] and [y] as dependencies. *)
@@ -26,7 +26,7 @@ val (=>): 'a -> 'b -> 'a t
 
 (** [x ==> ys] ensures that the list of [ys] lives at least as long as [x] does, by
     wrapping [x] in a ['a t] and adding [x] and the list of [ys] as dependencies. *)
-val (==>) 'a -> 'b list -> 'a t
+val (==>) : 'a -> 'b list -> 'a t
 
 (** See [bind]. *)
 val (>>=) : ('a -> 'b t) -> 'a t -> 'b t
@@ -36,13 +36,15 @@ val (>>=) : ('a -> 'b t) -> 'a t -> 'b t
     point where this function is called. *)
 val keep_alive : 'a -> unit
 
-module Let_syntax = struct
-  val (let*) : 'a 't -> ('a -> 'b 't) -> 'b t
+module type LET_SYNTAX = sig
+  val (let*) : 'a t -> ('a -> 'b t) -> 'b t
 
-  val (let+) : 'a 't -> ('a -> 'b) -> 'b t
+  val (let+) : 'a t -> ('a -> 'b) -> 'b t
 
   (** This is a simple binding operator for keeping the bound variable alive for
       the whole time it is in scope.*)
   val (let$) : 'a -> ('a -> 'b) -> 'b
 
 end
+
+module Let_syntax : LET_SYNTAX
