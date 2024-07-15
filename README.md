@@ -114,4 +114,10 @@ In this second example, even if `Ctypes.(!@)` calls the garbage collector, the `
 
 1. One may provide their own logging function `log_leak`, which is passed an `string option` possibly containing the name of the leaked `Living_core.t`
 2. One may disable leak logging entirely by setting `should_log` to `false`.
-3. One may disable the safety net of preventing leaking of `Living_core.t`s which haven't been `unsafe_free`d.  This is an optimization and only recommended if you're sure you got stuff right.  Segfaults await the uncareful programmer.
+3. One may disable the safety net of preventing leaking of `Living_core.t`s which haven't been `unsafe_free`d by setting `should_prevent_leaks` to false.  This is an optimization and only recommended if you're sure you've got stuff right.  Segfaults await the uncareful programmer.
+
+One my use default implementations of all of these things by accessing the `Living_core.Living_config_default` or even more simply by using the instantiated functor `Living_core.Default`.
+
+## Using the Library
+
+If you choose to use `Living` library in a project `Foo` then please _also_ make it a functor of type `module Living_core_intf.LIVING_CORE -> module FOO`.  This way users of your module can configure the `LIVING_CORE` implementation used to agree with other libraries they are using.  Some users might prefer to disable logging, to log to some special logger, or to disable safety after optimizing their usage, for example.  However, I would imagine many bindings would prefer to not expose their explicit dependence on `Living` at _all_, so if this is the case feel free to configure the module yourself -- just know you might be limiting some specific class of users.  An alternative is to provide a default implementation, as `Living_ctypes` and `Living_core` do.
