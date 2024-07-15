@@ -63,14 +63,14 @@ The key step we needed to do manually is to encode the dependence of `strchr_uns
 
 It is often useful to allow the GC to collect garbage, so you generally don't want your whole program to be wrapped in a `Living_core.t` containing every dependency in it.  Remember however, that this is an _optimization_, and should only be attempted once you know you need to by measuring performance.  If you mess this up, you can get segfaults, and often it's good enough to just let stuff fall out of scope.
 
-If you have measured performance and found you need to drop dependencies, you can do so by accessing the `unsafe_value` field of a `Living_core.t`.  This is the current value of the computation _without_ its dependencies.  Some care must be taken however.
+If you have measured performance and found you need to drop dependencies, you can do so by calling the `Living_core.unsafe_free` function.  This returns the current value of the computation _without_ its dependencies.  Some care must be taken however.
 
 The process looks like this:
 
 1. Take your `'a Living_core.t` and figure out if it has any pointers or structures that have been allocated by `malloc`, `Ctypes.allocate`, `Ctypes.allocate_n` or the like.
 2. If it does not, proceed to step 4.
 3. If it does, then copy all that data into OCaml heap objects that can't be GC'd from underneath you like an off-heap pointer can be, by using `Living_core.map` or `Living_core.bind` to map the `'a` to a new, safer `'b`
-4. Access `unsafe_value`.
+4. Call `Living_core.unsafe_free`.
 
 It is important to do step 3. properly.  Here are two examples; the first you should never do.
 
@@ -83,7 +83,7 @@ let _ =
     |> Living_core.bind CArray.start
     |> Living_core.bind (fun q -> strchr p 'a') in
     (* Bad assumption: We don't care about q after we derefence it, since the char is copied to OCaml, so we use the non-wrapped version of !@ from base Ctypes on just the value. *)
-    |> fun my_dependencyful_char_ptr -> Ctypes.(!@) my_dependencyful_char_ptr.unsafe_value
+    |> fun my_dependencyful_char_ptr -> Ctypes.(!@) (Living_core.unsafe_free my_dependencyful_char_ptr)
   in
   Printf.printf "%c\n" my_dependencyless_char
 ```
@@ -99,7 +99,7 @@ let _ =
     |> Living_core.bind CArray.start
     |> Living_core.bind (fun p -> strchr p 'a')
     |> Living_core.map Ctypes.(!@) (* Key idea: map with !@ _inside_ the Living_core.t context! *)
-    |> fun my_dependencyful_char -> my_dependencyful_char.unsafe_value in (* And only then access unsafe_value *)
+    |> fun my_dependencyful_char -> Living_core.unsafe_free my_dependencyful_char in (* And only the call unsafe_free *)
   in
   Printf.printf "%c\n" my_dependencyless_char
 ```
@@ -107,3 +107,7 @@ let _ =
 That is, you should do all the mapping you need to do to get to a safe, OCaml-copied value _within_ the context of the `Living_core.t`, before finally accessing `unsafe_value`.
 
 In this second example, even if `Ctypes.(!@)` calls the garbage collector, the `Living` library ensures that the C string "abc" will not be collected out from under you.
+
+## Configuring the Library
+
+`Living_core.unsafe_free`

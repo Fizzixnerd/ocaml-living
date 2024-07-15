@@ -5,3 +5,17 @@
 
 - Add tests for new setter functions. (#1)
     (Matt Walker)
+
+# 0.3.0
+
+* Add Living_core.Make functor
+    (Matt Walker)
+
+* Add Living_core_intf module
+    (Matt Walker)
+
+- Refactor Living_core
+    (Matt Walker)
+
+* Add module configuration
+    (Matt Walker)
