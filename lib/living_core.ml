@@ -81,4 +81,4 @@ module Make (Config: LIVING_CONFIG) : LIVING_CORE = struct
 end
 
 
-include Make (Default_living_config)
+module Default = Make (Default_living_config)

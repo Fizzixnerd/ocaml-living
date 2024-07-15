@@ -22,3 +22,9 @@
 
 * Make dependencies a tree instead of a list
     (Matt Walker)
+
+* Add `Default` module to both Living_core and Living_ctypes, containing 
+  a default implementation of the functor, and remove that default implementation
+  from being the modules themselves.  ie. You will need to change `open Living_core`
+  to `open Living_core.Default` if you want the same behaviour as before, etc.
+    (Matt Walker)

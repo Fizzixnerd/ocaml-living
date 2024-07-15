@@ -1,5 +1,7 @@
 open OUnit2
 open Living
+module Living_core = Living_core.Default
+module Living_ctypes = Living_ctypes.Default
 
 module Living_ctypes_tests = struct
 
