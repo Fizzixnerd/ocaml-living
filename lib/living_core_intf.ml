@@ -45,12 +45,10 @@ module type LIVING_CORE = sig
   val map : ('a -> 'b) -> 'a t -> 'b t
 
   (** [x => y] ensures that [y] lives at least as long as [x] does, by wrapping
-      [x] in a ['a t] and adding both [x] and [y] as dependencies. *)
+      [x] in a ['a t] and adding both [x] and [y] as dependencies.  Note that this
+      operator works on OCaml lists, tuples, and arrays too, if you need to keep
+      multiple objects as dependencies. *)
   val (=>): 'a -> 'b -> 'a t
-
-  (** [x ==> ys] ensures that the list of [ys] lives at least as long as [x] does, by
-      wrapping [x] in a ['a t] and adding [x] and the list of [ys] as dependencies. *)
-  val (==>) : 'a -> 'b list -> 'a t
 
   (** See [bind]. *)
   val (>>=) : 'a t -> ('a -> 'b t) -> 'b t

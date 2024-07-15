@@ -19,3 +19,6 @@
 
 * Add module configuration
     (Matt Walker)
+
+* Make dependencies a tree instead of a list
+    (Matt Walker)

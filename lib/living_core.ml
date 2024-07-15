@@ -22,7 +22,7 @@ end
 module Types = struct
   type dep = Dep : 'a -> dep
 
-  type 'a t = { unsafe_value: 'a; dependencies : dep list; name: string option; mutable freed: bool}
+  type 'a t = { unsafe_value: 'a; dependencies : dep; name: string option; mutable freed: bool}
 end
 
 module Make (Config: LIVING_CONFIG) : LIVING_CORE = struct
@@ -30,27 +30,25 @@ module Make (Config: LIVING_CONFIG) : LIVING_CORE = struct
 
   type nonrec dep = dep
   type nonrec 'a t = 'a t
-  let _global = ref { unsafe_value = (); dependencies = []; name = Some "_global"; freed = false }
+  let _global = ref { unsafe_value = (); dependencies = Dep (); name = Some "_global"; freed = false }
 
   let construct ?name x deps =
     let ret = {unsafe_value = x; dependencies = deps; name; freed = false} in
     Gc.finalise (fun x ->
       if not x.freed then
         if Config.should_log then Config.log_leak x.name;
-        if Config.should_prevent_leaks then _global := { !_global with dependencies = Dep x :: !_global.dependencies })
+        if Config.should_prevent_leaks then _global := { !_global with dependencies = Dep (x, !_global.dependencies) })
       ret;
     ret
 
 
   let return : 'a -> 'a t =
-    fun x -> construct x [Dep x]
+    fun x -> construct x (Dep x)
 
   let named_return : string -> 'a -> 'a t =
-    fun name x -> construct ~name x [Dep x]
+    fun name x -> construct ~name x (Dep x)
 
-  let (=>) x y = construct x [Dep x; Dep y]
-
-  let (==>) x ys = construct x (Dep x :: List.map (fun y -> Dep y) ys)
+  let (=>) x y = construct x (Dep (x, y))
 
   let unsafe_free x =
     x.freed <- true;
@@ -59,7 +57,7 @@ module Make (Config: LIVING_CONFIG) : LIVING_CORE = struct
   let bind : ('a -> 'b t) -> 'a t -> 'b t =
     fun f x ->
       let y = f (unsafe_free x) in
-      let z = { y with dependencies = Dep y :: x.dependencies @ y.dependencies} in
+      let z = { y with dependencies = Dep (y, x.dependencies, y.dependencies)} in
       ignore (unsafe_free y);
       z
 
