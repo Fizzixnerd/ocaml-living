@@ -104,7 +104,7 @@ let _ =
   Printf.printf "%c\n" my_dependencyless_char
 ```
 
-That is, you should do all the mapping you need to do to get to a safe, OCaml-copied value _within_ the context of the `Living_core.t`, before finally accessing `unsafe_value`.
+That is, you should do all the mapping you need to do to get to a safe, OCaml-copied value _within_ the context of the `Living_core.t`, before finally calling `Living_core.unsafe_free`.
 
 In this second example, even if `Ctypes.(!@)` calls the garbage collector, the `Living` library ensures that the C string "abc" will not be collected out from under you.
 
