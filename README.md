@@ -110,4 +110,8 @@ In this second example, even if `Ctypes.(!@)` calls the garbage collector, the `
 
 ## Configuring the Library
 
-`Living_core.unsafe_free`
+`Living_core` can be configured in a variety of ways using the `Living_core.Make` functor.
+
+1. One may provide their own logging function `log_leak`, which is passed an `string option` possibly containing the name of the leaked `Living_core.t`
+2. One may disable leak logging entirely by setting `should_log` to `false`.
+3. One may disable the safety net of preventing leaking of `Living_core.t`s which haven't been `unsafe_free`d.
