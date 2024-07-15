@@ -99,7 +99,7 @@ let _ =
     |> Living_core.bind CArray.start
     |> Living_core.bind (fun p -> strchr p 'a')
     |> Living_core.map Ctypes.(!@) (* Key idea: map with !@ _inside_ the Living_core.t context! *)
-    |> Living_core.unsafe_free in (* And only the call unsafe_free *)
+    |> Living_core.unsafe_free (* And only the call unsafe_free *)
   in
   Printf.printf "%c\n" my_dependencyless_char
 ```
