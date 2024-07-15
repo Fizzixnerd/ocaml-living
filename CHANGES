@@ -20,7 +20,7 @@
 * Add module configuration
     (Matt Walker)
 
-* Make dependencies a tree instead of a list
+* Make dependencies a tree instead of a list (thanks @edwintorok for the idea!)
     (Matt Walker)
 
 * Add `Default` module to both Living_core and Living_ctypes, containing 
