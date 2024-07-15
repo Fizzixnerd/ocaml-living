@@ -114,4 +114,4 @@ In this second example, even if `Ctypes.(!@)` calls the garbage collector, the `
 
 1. One may provide their own logging function `log_leak`, which is passed an `string option` possibly containing the name of the leaked `Living_core.t`
 2. One may disable leak logging entirely by setting `should_log` to `false`.
-3. One may disable the safety net of preventing leaking of `Living_core.t`s which haven't been `unsafe_free`d.
+3. One may disable the safety net of preventing leaking of `Living_core.t`s which haven't been `unsafe_free`d.  This is an optimization and only recommended if you're sure you got stuff right.  Segfaults await the uncareful programmer.
