@@ -1,4 +1,5 @@
 include Living_core_intf
+
 module Default_living_config : LIVING_CONFIG = struct
   let log_leak name =
     Printf.sprintf
@@ -16,31 +17,27 @@ module Default_living_config : LIVING_CONFIG = struct
     |> prerr_endline
   let should_log = true
   let should_prevent_leaks = true
-end
 
-
-module Types = struct
-  type dep = Dep : 'a -> dep
-
-  type 'a t = { unsafe_value: 'a; dependencies : dep; name: string option; mutable freed: bool}
+  let lifetime = Types.Lifetime.static
 end
 
 module Make (Config: LIVING_CONFIG) : LIVING_CORE = struct
   open Types
+  include Config
+  let lifetime = Config.lifetime
 
-  type nonrec dep = dep
-  type nonrec 'a t = 'a t
-  let _global = ref { unsafe_value = (); dependencies = Dep (); name = Some "_global"; freed = false }
+  type dep = Dep.t
+  type 'a t = 'a Life.t
+  let _global = ref { Life.unsafe_value = (); dependencies = Dep.Dep (); name = Some "_global"; lifetime = Lifetime.Static; freed = false }
 
   let construct ?name x deps =
-    let ret = {unsafe_value = x; dependencies = deps; name; freed = false} in
+    let ret = {Life.unsafe_value = x; dependencies = deps; name; lifetime = Config.lifetime; freed = false} in
     Gc.finalise (fun x ->
-      if not x.freed then
+      if not x.Life.freed then
         if Config.should_log then Config.log_leak x.name;
-        if Config.should_prevent_leaks then _global := { !_global with dependencies = Dep (x, !_global.dependencies) })
+        if Config.should_prevent_leaks || x.lifetime = Lifetime.static then _global := { !_global with dependencies = Dep (x, !_global.dependencies) })
       ret;
     ret
-
 
   let return : 'a -> 'a t =
     fun x -> construct x (Dep x)
@@ -48,18 +45,32 @@ module Make (Config: LIVING_CONFIG) : LIVING_CORE = struct
   let named_return : string -> 'a -> 'a t =
     fun name x -> construct ~name x (Dep x)
 
-  let (=>) x y = construct x (Dep (x, y))
-
   let unsafe_free x =
-    x.freed <- true;
+    x.Life.freed <- true;
     x.unsafe_value
+
+  let extract = unsafe_free
+
+  let (=>) x y = 
+    let z = construct x (Dep (x, y)) in
+    let z' = {z with lifetime = y.Life.lifetime}
+    in
+    ignore (unsafe_free z);
+    z'
 
   let bind : ('a -> 'b t) -> 'a t -> 'b t =
     fun f x ->
       let y = f (unsafe_free x) in
-      let z = { y with dependencies = Dep (y, x.dependencies, y.dependencies)} in
-      ignore (unsafe_free y);
-      z
+      if y.lifetime <= x.lifetime then
+        let z = { y with dependencies = Dep (y, x.dependencies, y.dependencies)} in
+        ignore (unsafe_free y);
+        z
+      else
+        raise (Lifetime.Lifetime_exception (y.lifetime, x.lifetime))
+
+  let extend : ('b t -> 'a) -> 'b t -> 'a t =
+    fun f x ->
+      f x => x
 
   let (>>=) x f = bind f x
 
@@ -80,5 +91,9 @@ module Make (Config: LIVING_CONFIG) : LIVING_CORE = struct
   end
 end
 
+module AtMost (Config: LIVING_CONFIG) : LIVING_CORE = struct
+  include Make(Config)
+  let lifetime = Types.Lifetime.at_most lifetime
+end
 
 module Default = Make (Default_living_config)
