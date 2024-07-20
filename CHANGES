@@ -28,3 +28,7 @@
   from being the modules themselves.  ie. You will need to change `open Living_core`
   to `open Living_core.Default` if you want the same behaviour as before, etc.
     (Matt Walker)
+
+* Fix use-after-free errors in set functions by making dependencies mutable and adding
+  to them during each `set`-like method.
+    (Matt Walker)
