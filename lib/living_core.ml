@@ -18,11 +18,10 @@ module Default_living_config : LIVING_CONFIG = struct
   let should_prevent_leaks = true
 end
 
-
 module Types = struct
   type dep = Dep : 'a -> dep
 
-  type 'a t = { unsafe_value: 'a; dependencies : dep; name: string option; mutable freed: bool}
+  type 'a t = { unsafe_value: 'a; mutable dependencies : dep; name: string option; mutable freed: bool}
 end
 
 module Make (Config: LIVING_CONFIG) : LIVING_CORE = struct
@@ -37,10 +36,9 @@ module Make (Config: LIVING_CONFIG) : LIVING_CORE = struct
     Gc.finalise (fun x ->
       if not x.freed then
         if Config.should_log then Config.log_leak x.name;
-        if Config.should_prevent_leaks then _global := { !_global with dependencies = Dep (x, !_global.dependencies) })
+        if Config.should_prevent_leaks then !_global.dependencies <- Dep (x, !_global.dependencies))
       ret;
     ret
-
 
   let return : 'a -> 'a t =
     fun x -> construct x (Dep x)
@@ -50,6 +48,10 @@ module Make (Config: LIVING_CONFIG) : LIVING_CORE = struct
 
   let (=>) x y = construct x (Dep (x, y))
 
+  let add_dep : 'a t -> 'b -> unit =
+    fun x y ->
+      x.dependencies <- Dep (x.dependencies, y)
+
   let unsafe_free x =
     x.freed <- true;
     x.unsafe_value
@@ -57,9 +59,8 @@ module Make (Config: LIVING_CONFIG) : LIVING_CORE = struct
   let bind : ('a -> 'b t) -> 'a t -> 'b t =
     fun f x ->
       let y = f (unsafe_free x) in
-      let z = { y with dependencies = Dep (y, x.dependencies, y.dependencies)} in
-      ignore (unsafe_free y);
-      z
+      y.dependencies <- Dep (y, x.dependencies, y.dependencies);
+      y
 
   let (>>=) x f = bind f x
 

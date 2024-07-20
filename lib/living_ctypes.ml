@@ -2,7 +2,7 @@ module Make (LCore: Living_core_intf.LIVING_CORE) = struct
 
     include Ctypes
 
-    (** [!@ p] dereferences the pointer [p], wrapped in a [LCore.t].
+    (** [!@ p] dereferences the pointer [p], wrapped in an [LCore.t].
         The dependencies include the original pointer.  If the reference
         type is a scalar type then dereferencing constructs a new value.
         If the reference type is an aggregate type then dereferencing
@@ -10,47 +10,62 @@ module Make (LCore: Living_core_intf.LIVING_CORE) = struct
     let (!@) p = LCore.(!@ p => p)
 
     (** If [p] is a pointer to an array element then [p +@ n] computes
-        the address of the [n]th next element, wrapped in a [LCore.t].
+        the address of the [n]th next element, wrapped in an [LCore.t].
         The dependencies include the original pointer. *)
     let (+@) p n = LCore.(p +@ n => p)
 
     (** If [p] is a pointer to an array element then [p +@ n] computes
-        the address of the [n]th previous element, wrapped in a [LCore.t].
+        the address of the [n]th previous element, wrapped in an [LCore.t].
         The dependencies include the original pointer. *)
     let (-@) p n = LCore.(p -@ n => p)
 
     (** [allocate t v] allocates a fresh value of type [t], initialises it
-        with [v] and returns its address, wrapped in a [LCore.t].  
+        with [v] and returns its address, wrapped in an [LCore.t].  
         The dependencies include the argument [v]. The argument [?finalise],
         if present, will be called just before the memory is freed. The value
         will be automatically freed after no references to the pointer remain
         within the calling OCaml program. *)
     let allocate ?finalise typ x = LCore.(allocate ?finalise typ x => x)
 
+    (** [allocate_n ~count t] allocates [count] fresh values of type [t], and
+        returns its address, wrapped in an [LCore.t].  The dependencies include
+        only the returned value, but the value is returned within an [LCore.t] so
+        that dependencies can be tracked when you later use [setf] or [(<-@)] with
+        it. 
+        
+        The argument [?finalise], if present, will be called just before the 
+        memory is freed. The value will be automatically freed after no references
+        to the pointer remain within the calling OCaml program.*)
+    let allocate_n ?finalise ~count typ = LCore.(return (allocate_n ?finalise ~count typ))
+
     (** [getf s f] retrieves the value of the field [f] in the structure or
-        union [s], wrapped in a [LCore.t].  The dependencies include the 
+        union [s], wrapped in an [LCore.t].  The dependencies include the 
         original structure.  The semantics for non-scalar types are
         non-copying, as for [(!@)]. *)
     let getf s f = LCore.(getf s f => s)
 
     (** [setf s f v] overwrites the value of the field [f] in the structure or union
-        [s] with [v], and returns a [unit] wrapped in a [LCore.t].  The dependencies
+        [s] with [v], and returns a [unit] wrapped in an [LCore.t].  The dependencies
         include [v]. *)
-    let setf s f x = LCore.(setf s f x => x)
+    let setf s f x = 
+        LCore.add_dep s x;
+        LCore.map (fun s' -> setf s' f x) s
 
     (** [s @. f] computes the address of the field [f] in the structure or
-        union value [s], wrapped in a [LCore.t].  The dependencies include
+        union value [s], wrapped in an [LCore.t].  The dependencies include
         the original structure. *)
     let (@.) s f = LCore.(s @. f => s)
 
     (** [p |-> f] computes the address of the field [f] in the structure or
-        union value pointed to by [p], wrapped in a [LCore.t].  The
+        union value pointed to by [p], wrapped in an [LCore.t].  The
         dependencies include the original pointer. *)
     let (|->) p f = LCore.(p |-> f => p)
 
     (** [p <-@ v] writes the value [v] to the address [p], and returns a [unit]
-        wrapped in a [LCore.t].  The dependencies include [v]. *)
-    let (<-@) p x = LCore.(p <-@ x => x)
+        wrapped in an [LCore.t].  The dependencies include [v]. *)
+    let (<-@) p x = 
+        LCore.add_dep p x;
+        LCore.map (fun p' -> p' <-@ x) p
 
     (** [addr s] returns the address of the structure or union [s], wrapped
         in a [LCore.t].  The dependencies include the original structure. *)
@@ -78,17 +93,19 @@ module Make (LCore: Living_core_intf.LIVING_CORE) = struct
 
             Raise [Invalid_argument "index out of bounds"] if [n] is outside of the range [0]
             to [(CArray.length a - 1)]. *)
-        let set a n x = LCore.(set a n x => x)
+        let set a n x = 
+            LCore.add_dep a x;
+            LCore.map (fun a' -> set a' n x) a
 
         (** [map t f a] is analogous to [Array.map f a]: it creates a new array with
             element type [t] whose elements are obtained by applying [f] to the
-            elements of [a], except the result is wrapped in a [LCore.t].  The
+            elements of [a], except the result is wrapped in an [LCore.t].  The
             dependencies include the original array. *)
         let map t f a = LCore.(=>) (map t f a) a
 
         (** [mapi] behaves like {!Array.mapi}, except that it also passes the
             index of each element as the first argument to [f] and the element
-            itself as the second argument.  The result is wrapped in a [LCore.t].
+            itself as the second argument.  The result is wrapped in an [LCore.t].
             The dependencies include the original array. *)  
         let mapi t f a = LCore.(mapi t f a => a)
 
@@ -108,9 +125,8 @@ module Make (LCore: Living_core_intf.LIVING_CORE) = struct
             [LCore.t].  The dependencies include the original array. *)
         let start a = LCore.(start a => a)
 
-
         (** [from_ptr p n] creates an [n]-length array reference to the memory at
-            address [p], wrapped in a [LCore.t].  The dependencies include
+            address [p], wrapped in an [LCore.t].  The dependencies include
             the original pointer. *)
         let from_ptr p n = LCore.(from_ptr p n => p)
 

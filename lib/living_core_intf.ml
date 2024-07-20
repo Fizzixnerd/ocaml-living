@@ -38,6 +38,9 @@ module type LIVING_CORE = sig
       need for before you reach for it. *)
   val unsafe_free : 'a t -> 'a
 
+  (** [add_dep x y] mutates the dependencies of [x] to include [y].*)
+  val add_dep : 'a t -> 'b -> unit
+
   (** [map f x] maps over the inner [x.unsafe_value] without modifying
       its dependencies.  Note that since [bind], [return], and [(=>)] are 
       the only safe ways of constructing an ['a t], that these dependencies
